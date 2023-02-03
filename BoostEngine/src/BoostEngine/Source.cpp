@@ -9,6 +9,13 @@
 #include <fstream>
 #include <filesystem>
 #include <string>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <thread>
+#include <chrono>
+#include <wininet.h>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -25,13 +32,58 @@ int main()
     else
     {
         std::cout << "File not found." << std::endl;
-        if (!fs::exists("C:\\Program Files\\BoostEngine")) {
-            fs::create_directory("C:\\Program Files\\BoostEngine");
+        if (!fs::exists("C:\\Program Files\\BoostEngine"))
+        {
+            if (!fs::create_directory("C:\\Program Files\\BoostEngine"))
+            {
+                std::cout << "Error creating directory: C:\\Program Files\\BoostEngine" << std::endl;
+                return 1;
+            }
             std::cout << "New folder created: C:\\Program Files\\BoostEngine" << std::endl;
         }
-        //std::string url = "https://raw.githubusercontent.com/nlohmann/json/develop/src/json.hpp";
-        //std::string output_file = "C:\\Program Files\\BoostEngine\\terminate.json";
-        // code to download the json file from web
+
+        HINTERNET hIntSession = InternetOpenA("Wininet Example/1.0", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+        if (hIntSession == NULL)
+        {
+            std::cout << "Error opening Internet session." << std::endl;
+            return 1;
+        }
+        HINTERNET hHttpSession = InternetOpenUrlA(hIntSession, "https://raw.githubusercontent.com/Aaliyah6022/BoostEngine/main/Config/terminate.json", NULL, 0, INTERNET_FLAG_RELOAD, 0);
+        if (hHttpSession == NULL)
+        {
+            std::cout << "Error opening URL." << std::endl;
+            InternetCloseHandle(hIntSession);
+            return 1;
+        }
+        std::vector<char> buffer(4096);
+        std::ostringstream os;
+        DWORD bytesRead;
+        do
+        {
+            if (!InternetReadFile(hHttpSession, &buffer[0], static_cast<DWORD>(buffer.size()), &bytesRead))
+            {
+                std::cout << "Error reading data." << std::endl;
+                InternetCloseHandle(hHttpSession);
+                InternetCloseHandle(hIntSession);
+                return 1;
+            }
+            if (bytesRead == 0)
+                break;
+            os.write(&buffer[0], bytesRead);
+        } while (true);
+        InternetCloseHandle(hHttpSession);
+        InternetCloseHandle(hIntSession);
+        std::istringstream is(os.str());
+        std::ofstream f("C:\\Program Files\\BoostEngine\\terminate.json");
+        if (!f.is_open())
+        {
+            std::cout << "Error opening file for writing." << std::endl;
+            return 1;
+        }
+        f << is.rdbuf();
+
+        std::cout << "Config file successfully downloaded. Please close and run the program again." << std::endl;
+        return 0;
     }
 
     std::vector<std::string> found_processes;
