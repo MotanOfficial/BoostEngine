@@ -24,7 +24,8 @@ logger.addHandler(file_handler)
 processes = set()
 for process in psutil.process_iter():
     try:
-        if not process.name().startswith("svchost"):
+        process_name = process.name()
+        if not process_name.startswith("svchost") and process_name.endswith(".exe"):
             processes.add(process.name())
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         logger.error(f"Failed to retrieve information about process {process}")
@@ -36,7 +37,7 @@ for service in psutil.win_service_iter():
         services.append(service.name())
 
 # Write output to a log file
-logger.info("BoostEngineHelper Version 1.1")
+logger.info("BoostEngineHelper Version 1.2")
 logger.info("=====================")
 logger.info("Active processes:")
 for process in processes:
