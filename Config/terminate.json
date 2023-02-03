@@ -6,10 +6,5 @@
     ],
     "services": [
         "spooler"
-    ],
-    "background_apps": [
-        "Microsoft Solitaire Collection",
-        "Xbox Console Companion",
-        "Microsoft Store"
     ]
 }
